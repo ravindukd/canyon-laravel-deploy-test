@@ -2,24 +2,12 @@
 L=$HOME/dlog.txt
 : > $L
 exec >>$L 2>&1
-echo "=== START6"
-(cd ~/public_html && php -v | head -1)
-P=/opt/cpanel/ea-php83/root/usr/bin/php
-echo "--- composer 8.3 default memory"
-rm -rf $HOME/rel3; mkdir -p $HOME/rel3; cp -R . $HOME/rel3; cd $HOME/rel3
-$P /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction 2>&1 | egrep -i "error|memory|Generating|fail" | head
-echo "composer exit=${PIPESTATUS[0]}"
-cp $HOME/shared.env .env
-$P artisan key:generate 2>&1 | tail -1
-$P artisan migrate --force 2>&1 | tail -6
-$P artisan optimize 2>&1 | tail -3
-$P artisan schedule:run 2>&1 | tail -2
-$P artisan queue:restart 2>&1 | tail -1
-echo "--- PATH-prefix trick"
-mkdir -p $HOME/bin83; ln -sfn $P $HOME/bin83/php; PATH=$HOME/bin83:$PATH composer --version 2>&1 | head -2
-echo "--- npm install"
+echo "=== START7"
 export PATH=/opt/cpanel/ea-nodejs22/bin:$PATH
-echo '{"name":"t","private":true,"devDependencies":{"vite":"^5.0.0"},"scripts":{"build":"vite build"}}' > package.json
-S=$(date +%s); npm install --no-audit --no-fund 2>&1 | tail -3; echo "npm secs=$(( $(date +%s)-S ))"
-echo "<html><body>x</body></html>" > index.html; node node_modules/vite/bin/vite.js build 2>&1 | tail -4; echo "npm run build:"; npm run build 2>&1 | tail -3; ulimit -v; ulimit -u
-echo "=== END5"
+cd $HOME/rel3
+node -e 'console.log("node ok")' 2>&1 | head -2
+echo "-- plain build"; node node_modules/vite/bin/vite.js build 2>&1 | tail -3
+echo "-- wasm trap handler off"; NODE_OPTIONS=--disable-wasm-trap-handler node node_modules/vite/bin/vite.js build 2>&1 | tail -3
+echo "-- heap 1g + trap off via npm"; NODE_OPTIONS="--disable-wasm-trap-handler --max-old-space-size=1024" npm run build 2>&1 | tail -4
+echo "-- npm_config_update_notifier"; npm_config_update_notifier=false NODE_OPTIONS=--disable-wasm-trap-handler npm run build 2>&1 | tail -4
+echo "=== END7"
