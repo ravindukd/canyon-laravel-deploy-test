@@ -2,23 +2,24 @@
 L=$HOME/dlog.txt
 : > $L
 exec >>$L 2>&1
-echo "=== START4"
-php -v | head -1; php -r 'echo "mem=",ini_get("memory_limit"),"\n";'
-composer --version 2>&1 | head -2
-echo "--- composer via wrapper php, default memory"
-rm -rf $HOME/rel2; mkdir -p $HOME/rel2; cp -R . $HOME/rel2; cd $HOME/rel2
-php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction 2>&1 | egrep -i "error|memory|Generating|exit|fail" | head
+echo "=== START5"
+(cd ~/public_html && php -v | head -1)
+P=/opt/cpanel/ea-php83/root/usr/bin/php
+echo "--- composer 8.3 default memory"
+rm -rf $HOME/rel3; mkdir -p $HOME/rel3; cp -R . $HOME/rel3; cd $HOME/rel3
+$P /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction 2>&1 | egrep -i "error|memory|Generating|fail" | head
 echo "composer exit=${PIPESTATUS[0]}"
-/usr/bin/env php -v | head -1
-cp .env.example .env
 cp $HOME/shared.env .env
-php artisan key:generate 2>&1 | tail -1
-php artisan migrate --force 2>&1 | tail -6
-php artisan optimize 2>&1 | tail -3
-php artisan schedule:run 2>&1 | tail -2
-echo "--- node on PATH?"; command -v node || echo none
-export PATH=/opt/cpanel/ea-nodejs22/bin:$PATH; node -v; npm -v
-echo "--- npm install vite"
-S=$(date +%s); npm ci --no-audit --no-fund 2>&1 | tail -3; echo "npm secs=$(( $(date +%s)-S ))"
-npm run build 2>&1 | tail -5
-echo "=== END4"
+$P artisan key:generate 2>&1 | tail -1
+$P artisan migrate --force 2>&1 | tail -6
+$P artisan optimize 2>&1 | tail -3
+$P artisan schedule:run 2>&1 | tail -2
+$P artisan queue:restart 2>&1 | tail -1
+echo "--- PATH-prefix trick"
+mkdir -p $HOME/bin83; ln -sfn $P $HOME/bin83/php; PATH=$HOME/bin83:$PATH composer --version 2>&1 | head -2
+echo "--- npm install"
+export PATH=/opt/cpanel/ea-nodejs22/bin:$PATH
+echo '{"name":"t","private":true,"devDependencies":{"vite":"^5.0.0"},"scripts":{"build":"vite build"}}' > package.json
+S=$(date +%s); npm install --no-audit --no-fund 2>&1 | tail -3; echo "npm secs=$(( $(date +%s)-S ))"
+npx vite --version
+echo "=== END5"
