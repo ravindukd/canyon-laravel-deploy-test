@@ -2,7 +2,7 @@
 L=$HOME/dlog.txt
 : > $L
 exec >>$L 2>&1
-echo "=== START5"
+echo "=== START6"
 (cd ~/public_html && php -v | head -1)
 P=/opt/cpanel/ea-php83/root/usr/bin/php
 echo "--- composer 8.3 default memory"
@@ -21,5 +21,5 @@ echo "--- npm install"
 export PATH=/opt/cpanel/ea-nodejs22/bin:$PATH
 echo '{"name":"t","private":true,"devDependencies":{"vite":"^5.0.0"},"scripts":{"build":"vite build"}}' > package.json
 S=$(date +%s); npm install --no-audit --no-fund 2>&1 | tail -3; echo "npm secs=$(( $(date +%s)-S ))"
-npx vite --version
+echo "<html><body>x</body></html>" > index.html; node node_modules/vite/bin/vite.js build 2>&1 | tail -4; echo "npm run build:"; npm run build 2>&1 | tail -3; ulimit -v; ulimit -u
 echo "=== END5"
